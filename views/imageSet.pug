@@ -1,0 +1,24 @@
+mixin images(path)
+    tr.path
+        td
+            img(src="/img/"+repoName+'/'+path)
+        td Nope
+        td Pas d'indices puisqu'elle est singulière
+html
+    head
+        title 'Images of the Set'
+        style
+            include ../css/imageSet.css
+    body
+        div
+            h1 List of images Sets
+            table
+                thead
+                    td
+                    td Singulière ?
+                    td Indice
+                tbody
+                    for path in sourceList
+                        console.log(path)
+                        +images(path)
+

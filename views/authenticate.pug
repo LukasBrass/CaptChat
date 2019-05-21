@@ -1,0 +1,14 @@
+div
+    h1=title
+    form(method='POST' action='')
+        label Username
+        input(type='text' placeholder='Username' name='username')
+        br
+        label Password
+        input(type='password' placeholder='Password' name='password')
+        br
+        - if(method === 'signup'){
+            label email
+            input(type='email' placeholder='email' name='email')
+        - }
+        input(type='submit')

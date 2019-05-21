@@ -1,0 +1,146 @@
+openapi: 3.0.0
+info:
+  version: 1.0.0
+  title: Licence Pro Première API
+  license:
+    name: MIT
+servers:
+  - url: 'http://127.0.0.1:8080'
+paths:
+  /users:
+    get:
+      summary: Lister tous les utilisateurs
+      operationId: listusers
+      tags:
+        - users
+      responses:
+        '200':
+          description: tous les utilisateurs
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Users'
+        default:
+          description: erreur inconnue
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+    post:
+      summary: Créer un utilisateur
+      operationId: createUsers
+      tags:
+        - users
+      requestBody:
+        description: Optional description in *Markdown*
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/User'
+
+      responses:
+        '201':
+          description: Null response
+        default:
+          description: erreur inconnue
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+  '/users/{userId}':
+    get:
+      summary: Detail pour un utilisateur
+      operationId: showUserById
+      tags:
+        - users
+      parameters:
+        - name: userId
+          in: path
+          required: true
+          description: id du user
+          schema:
+            type: integer
+      responses:
+        '200':
+          description: Reponse correcte
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Users'
+        default:
+          description: unexpected error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+    put:
+      summary: Modifier un utilisateur
+      operationId: updateUser
+      tags:
+        - users
+      parameters:
+        - name: userId
+          in: path
+          required: true
+          description: id du user
+          schema:
+            type: integer
+            
+      requestBody:
+        description: Optional description in *Markdown*
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/User'
+      responses:
+        default:
+          description: Default error sample response
+    delete:
+      summary: Supprimer un utilisateur
+      operationId: DeleteUser
+      tags:
+        - users
+      parameters:
+        - name: userId
+          in: path
+          required: true
+          description: id du user
+          schema:
+            type: integer
+      responses:
+        default:
+          description: Default error sample response
+components:
+  schemas:
+    User:
+      required:
+        - username
+        - email
+        - password
+        - create_time
+        - id
+      properties:
+        id:
+          type: integer
+        username:
+          type: string
+        email:
+          type: string
+        password:
+          type: string
+    Users:
+      type: array
+      items:
+        $ref: '#/components/schemas/User'
+    Error:
+      required:
+        - code
+        - message
+      properties:
+        code:
+          type: integer
+          format: int32
+        message:
+          type: string

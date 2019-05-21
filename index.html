@@ -1,0 +1,32 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Welcome</title>
+</head>
+<body>
+<h1>Bienvenue</h1>
+<h3>Veuillez vous identifier : </h3>
+<form action="/auth" method="get" id="connection">
+    <input type="text" id="connection_login" placeholder="Login"><br />
+    <input type="password" id="connection_password" placeholder="Password"><br />
+    <input type="submit" value="Connexion">
+</form>
+
+Vous n'avez pas encore de compte ?<button id="create_account" onclick="showRegister();">Cliquez ici !</button>
+
+<form action="/signup" method="post" id="register" hidden="hidden"><br />
+    <input type="text" id="register_login" placeholder="Login"><br />
+    <input type="password" id="register_password" placeholder="Password">
+    <input type="submit" value="S'inscrire">
+</form>
+
+</body>
+
+<script type="application/javascript">
+
+    function showRegister() {
+       document.getElementById("register").removeAttribute("hidden");
+    }
+</script>
+</html>
