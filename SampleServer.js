@@ -44,23 +44,14 @@ app.get('/repo', function(req, res) {
 });
 
 app.get('/repo/:name', function(req, res) {
-    let sourceList = [];
-    fs.readdir('./img/'+req.params.name, function(err, files) {
+    fs.readdir('./img/' + req.params.name, function (err, files) {
         if (err) throw err;
-        files.forEach(function(file) {
-            let source = {};
-            source.path = file;
-            if(file.charAt(0) === 's') {
-                source.singulier = true;
-                var sql = mysql.format("SELECT description from Hint where image_name=?", ["/"+req.params.name+"/"+file]);
-                con.query(sql, function (err, result) {
-                    if(err) throw err;
-                    source.hint = result[0];
-                }
-            })
+        let sql = mysql.format("SELECT id from ImagesSet where name=? limit 1", [req.params.name]);
+        con.query(sql, function (err, result) {
+            if (err) throw err;
+            renderImages(result[0].id, req.params.name, files, res);
+        });
 
-            }
-        res.render('imageSet', {repoName: req.params.name, sourceList: files});
     });
 });
 
@@ -151,6 +142,41 @@ app.get('/api', function(req, res) {
     res.sendFile( __dirname + "/openapi.yaml" );
 });
 
+app.post('/repo/:repoName/image/:path/invert', function (req,res) {
+    let newPath;
+   if(req.params.path.charAt(0) === 's') {
+       let stringArray = req.params.path.split("-");
+       newPath = stringArray[1];
+   } else
+       newPath = "singulier-" + req.params.path;
+
+   fs.rename('./img/'+req.params.repoName+ '/' + req.params.path, './img/'+req.params.repoName+ '/' + newPath, function(err) {
+       if (err) throw err
+   });
+   if(newPath.charAt(0)) {
+       res.writeHead("302", {
+               Location: '/repo/'+ req.params.repoName+ '/image/' + newPath + "/new_hint"
+           }
+       );
+       res.end();
+   } else {
+       var sql = mysql.format("DELETE from Hint where image_name=?", req.params.path);
+       con.query(sql, function (err, result) {
+           if (err) throw err;
+       });
+       res.writeHead("302", {
+           Location: '/repo/' + req.params.repoName
+       });
+       res.end();
+   }
+
+});
+
+app.get("/repo/:repoName/image/:path/new_hint", function (req, res) {
+   res.write('test');
+   res.end();
+});
+
 
 app.use(express.static('forms'));
 app.use('/static', express.static('public'));
@@ -169,6 +195,27 @@ app.use(function(req, res, next){
 });
 
 app.listen(8080);
+
+function renderImages(repo_id, repo_name, files, res) {
+    let sourceList = [];
+    files.forEach(function (file) {
+        let source = {};
+        source.path = file;
+        if (file.charAt(0) === 's') {
+            source.singulier = true;
+            let sql = mysql.format("SELECT description from Hint where image_name=? and imageSet_id=? limit 1", [file, repo_id]);
+            con.query(sql, function (err, sqlResult) {
+                if (err) throw err;
+                source.indice = sqlResult[0].description;
+            });
+        } else
+            source.singulier = false;
+        sourceList.push(source);
+    });
+    con.query("select sleep(0.5);", function (err, result) {
+        res.render('imageSet', {repoName: repo_name, sourceList: sourceList});
+    });
+}
 
 
 function apiToken(req, res, send = true) {

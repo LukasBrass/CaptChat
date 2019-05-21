@@ -1,12 +1,23 @@
-mixin images(path)
-    tr.path
+
+mixin images(image)
+    tr.image
         td
-            img(src="/img/"+repoName+'/'+path)
-        td Nope
-        td Pas d'indices puisqu'elle est singulière
+            img(src="/img/"+repoName+'/'+image.path)
+        td=image.singulier ? "Oui":"Non"
+        td=image.indice
+        td
+            input(type="button" value="Modifier")
+        td
+            form(method="POST", action="/repo/"+repoName+"/image/"+image.path+"/invert" id="form_"+image.path)
+                select(id=image.path onchange='submitOnChange("'+image.path+'")')
+                    option(value=image.singulier)= image.singulier ? "Singulier" : "Neutre"
+                    option(value=!image.singulier)= image.singulier ? "Neutre" : "Singulier"
+
 html
     head
         title 'Images of the Set'
+        script
+            include ../js/imageSet.js
         style
             include ../css/imageSet.css
     body
@@ -17,8 +28,8 @@ html
                     td
                     td Singulière ?
                     td Indice
+                    td
                 tbody
-                    for path in sourceList
-                        console.log(path)
-                        +images(path)
+                    for image in sourceList
+                        +images(image)
 
