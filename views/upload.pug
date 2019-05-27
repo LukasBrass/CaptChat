@@ -1,0 +1,15 @@
+
+html
+    head
+        title 'Images of the Set'
+        style
+            include ../css/imageSet.css
+    body
+        div
+            h1 Upload your images
+            h3 You can upload zipfiles only
+            h3 Your zipfile will only contains jpg files
+            form(action="upload" method="post" enctype="multipart/form-data")
+                input(type="file" name="filetoupload")
+                input(type="submit")
+

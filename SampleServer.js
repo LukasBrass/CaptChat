@@ -8,6 +8,8 @@ var bcrypt = require('bcrypt');
 var fs = require('fs');
 var https = require('https');
 var pug = require('pug');
+var formidable = require('formidable');
+var AdmZip = require('adm-zip');
 
 var db = require('./env_variable').db;
 
@@ -143,12 +145,15 @@ app.get('/api', function(req, res) {
 });
 
 app.post('/repo/:repoName/image/:path/invert', function (req,res) {
+    console.log(req.body);
     let newPath;
    if(req.params.path.charAt(0) === 's') {
        let stringArray = req.params.path.split("-");
        newPath = stringArray[1];
    } else
        newPath = "singulier-" + req.params.path;
+    if (fs.existsSync('./img/' + req.params.repoName + '/' + newPath)) {
+    }
 
    fs.rename('./img/'+req.params.repoName+ '/' + req.params.path, './img/'+req.params.repoName+ '/' + newPath, function(err) {
        if (err) throw err
@@ -172,9 +177,59 @@ app.post('/repo/:repoName/image/:path/invert', function (req,res) {
 
 });
 
+app.get('/getsingular', function (req, res) {
+    let i = 0;
+    res.writeHead(200, {'Content-Type': 'image'});
+    fs.readdir("../img/initial", (err, files) => {
+        files.forEach(function(file) {
+            if(file.charAt(0) === s) {
+                i++;
+            }
+        });
+        singular_file = files[Math.floor(Math.random() * i-1 +1)];
+        fs.readFile('../img/initial/singulier-' + singular_file +'.jpg', null, (error,data) => {
+            res.write(data);
+            res.end();
+        });
+    });
+});
+
 app.get("/repo/:repoName/image/:path/new_hint", function (req, res) {
    res.write('test');
    res.end();
+});
+
+app.get("/upload", function (req, res) {
+   res.render("upload");
+   res.end();
+});
+
+app.post("/upload", function (req, res) {
+    var form = new formidable.IncomingForm();
+    form.parse(req, function(err, fields, files) {
+        var oldpath = files.filetoupload.path;
+        var newpath = './img/' + files.filetoupload.name;
+        fs.rename(oldpath, newpath, function (err) {
+            if(err) throw err;
+
+            var zip = new AdmZip(newpath);
+            var zipEntries = zip.getEntries();
+            fs.mkdirSync('./img/1');
+
+            zipEntries.forEach(function(zipEntry) {
+               zip.extractAllTo('./img/1');
+            });
+
+            res.write('File uploaded and moved');
+            res.end();
+        })
+    });
+    res.end();
+});
+
+app.get("/captcha", function (req, res) {
+    res.render('captcha');
+    res.end();
 });
 
 
