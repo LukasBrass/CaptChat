@@ -51,7 +51,7 @@ app.get('/repo/:name', function(req, res) {
         let sql = mysql.format("SELECT id from ImagesSet where name=? limit 1", [req.params.name]);
         con.query(sql, function (err, result) {
             if (err) throw err;
-            renderImages(result[0].id, req.params.name, files, res);
+            renderImages(result[0].id, req.params.name, files, res, req.query.update !== undefined);
         });
 
     });
@@ -79,10 +79,6 @@ app.post('/signin', function(req, res) {
 });
 
 app.get('/signup', function(req, res) {
-    res.render('authenticate', {method:"signup", title:"Vous inscrire"})
-});
-app.post('/signup', function(req, res) {
-    console.log(req.body);
     res.render('authenticate', {method:"signup", title:"Vous inscrire"})
 });
 
@@ -145,49 +141,54 @@ app.get('/api', function(req, res) {
 });
 
 app.post('/repo/:repoName/image/:path/invert', function (req,res) {
-    console.log(req.body);
-    let newPath;
-   if(req.params.path.charAt(0) === 's') {
-       let stringArray = req.params.path.split("-");
-       newPath = stringArray[1];
-   } else
-       newPath = "singulier-" + req.params.path;
-    if (fs.existsSync('./img/' + req.params.repoName + '/' + newPath)) {
-    }
+    var sql = mysql.format("SELECT h.id from Hint h, ImagesSet i where h.image_name=? and i.name=?", [req.params.path, req.params.repoName]);
+    con.query(sql, function (err, result) {
+        if (err) throw err;
+        if (result.id) {
+            console.log(result);
+            sql = mysql.format("DELETE FROM Hint where id=?", result.id);
+            con.query(sql, function (err, result) {
+                if (err) throw err;
 
-   fs.rename('./img/'+req.params.repoName+ '/' + req.params.path, './img/'+req.params.repoName+ '/' + newPath, function(err) {
-       if (err) throw err
-   });
-   if(newPath.charAt(0)) {
-       res.writeHead("302", {
-               Location: '/repo/'+ req.params.repoName+ '/image/' + newPath + "/new_hint"
-           }
-       );
-       res.end();
-   } else {
-       var sql = mysql.format("DELETE from Hint where image_name=?", req.params.path);
-       con.query(sql, function (err, result) {
-           if (err) throw err;
-       });
-       res.writeHead("302", {
-           Location: '/repo/' + req.params.repoName
-       });
-       res.end();
-   }
+                res.writeHead("302", {
+                    Location: '/repo/' + req.params.repoName
+                });
+                res.end();
+            });
+        } else {
+            sql = mysql.format("SELECT id from ImagesSet where name=?", req.params.repoName);
+            con.query(sql, function (err, result2) {
+                if (err) throw err;
+                sql = mysql.format("INSERT INTO Hint (description, imageSet_id, image_name) VALUES (?, ?, ?)", ["", result2[0].id, req.params.path]);
+                con.query(sql, function (err, result3) {
+                    if (err) throw err;
+
+                    res.writeHead("302", {
+                            Location: '/repo/' + req.params.repoName + '/image/' + req.params.path + "/new_hint"
+                        }
+                    );
+                    res.end();
+                })
+            });
+        }
+    });
 
 });
 
 app.get('/getsingular', function (req, res) {
     let i = 0;
+    let singularList = [];
     res.writeHead(200, {'Content-Type': 'image'});
-    fs.readdir("../img/initial", (err, files) => {
+    fs.readdir("./img/initial", (err, files) => {
         files.forEach(function(file) {
-            if(file.charAt(0) === s) {
+            if(file.charAt(0) === 's') {
+                singularList.push(file);
                 i++;
             }
         });
-        singular_file = files[Math.floor(Math.random() * i-1 +1)];
-        fs.readFile('../img/initial/singulier-' + singular_file +'.jpg', null, (error,data) => {
+        singular_file = singularList[Math.floor(Math.random() * i-1 +1)];
+        fs.readFile('./img/initial/' + singular_file, null, (error,data) => {
+            if(error) throw error;
             res.write(data);
             res.end();
         });
@@ -195,8 +196,21 @@ app.get('/getsingular', function (req, res) {
 });
 
 app.get("/repo/:repoName/image/:path/new_hint", function (req, res) {
-   res.write('test');
-   res.end();
+    if(req.query.hint) {
+        var sql = mysql.format("Update Hint, ImagesSet SET Hint.description=? where Hint.image_name=? and ImagesSet.name=?", [req.query.hint, req.params.path, req.params.repoName])
+        con.query(sql, function(err, result) {
+           if(err) throw err;
+           res.writeHead("302", {
+               Location: "/repo/" + req.params.repoName
+           });
+            res.end();
+        });
+    } else {
+        res.render("newHint", {repoName : req.params.repoName, imagePath : req.params.path});
+        res.end();
+    }
+
+
 });
 
 app.get("/upload", function (req, res) {
@@ -207,29 +221,47 @@ app.get("/upload", function (req, res) {
 app.post("/upload", function (req, res) {
     var form = new formidable.IncomingForm();
     form.parse(req, function(err, fields, files) {
-        var oldpath = files.filetoupload.path;
-        var newpath = './img/' + files.filetoupload.name;
-        fs.rename(oldpath, newpath, function (err) {
-            if(err) throw err;
+        var zippath = files.filetoupload.path;
+        var newPath = './img/' + files.filetoupload.name.slice(0, -4);
+        var zip = new AdmZip(zippath);
+        var zipEntries = zip.getEntries();
 
-            var zip = new AdmZip(newpath);
-            var zipEntries = zip.getEntries();
-            fs.mkdirSync('./img/1');
-
-            zipEntries.forEach(function(zipEntry) {
-               zip.extractAllTo('./img/1');
-            });
-
-            res.write('File uploaded and moved');
+        if(fs.existsSync(newPath)) {
+            res.write("Ce set d'image existe déjà !");
             res.end();
-        })
+            return false;
+        }
+
+        Object.keys(zipEntries).forEach(function (zipEntry) {
+            if(zipEntries[zipEntry].isDirectory === false) {
+                zip.extractEntryTo(zipEntries[zipEntry], newPath );
+                fs.rename(newPath + "/" + zipEntries[zipEntry].entryName, newPath + "/" + zipEntry + ".jpg", function(err) {
+                    if (err) throw err;
+                });
+            }
+        });
+
+        var sql = mysql.format("INSERT INTO ImagesSet (name, artist, theme, location) VALUES (?, ?, ?, ?)", [files.filetoupload.name.slice(0, -4), 1,1, newPath]);
+        con.query(sql, function (err, result) {
+            if(err) throw err;
+            res.writeHead("302", {
+                Location: "/repo/" + files.filetoupload.name.slice(0, -4) + "?update=true"
+            });
+            res.end();
+        });
     });
-    res.end();
+
+
 });
 
 app.get("/captcha", function (req, res) {
     res.render('captcha');
     res.end();
+});
+
+app.get("/success", function (req, res) {
+   res.write("Bravo !");
+   res.end();
 });
 
 
@@ -239,6 +271,7 @@ app.use('/static', express.static('public'));
 app.get('/img/:repoName/:imgName', function (req, res) {
     res.writeHead(200, {'Content-Type': 'image'});
     fs.readFile('./img/' + req.params.repoName + '/' + req.params.imgName, null, (error,data) => {
+        if(error) throw error;
         res.write(data);
         res.end();
     });
@@ -251,7 +284,7 @@ app.use(function(req, res, next){
 
 app.listen(8080);
 
-function renderImages(repo_id, repo_name, files, res) {
+function renderImages(repo_id, repo_name, files, res, update) {
     let sourceList = [];
     files.forEach(function (file) {
         let source = {};
@@ -268,7 +301,7 @@ function renderImages(repo_id, repo_name, files, res) {
         sourceList.push(source);
     });
     con.query("select sleep(0.5);", function (err, result) {
-        res.render('imageSet', {repoName: repo_name, sourceList: sourceList});
+        res.render('imageSet', {repoName: repo_name, sourceList: sourceList, update:update});
     });
 }
 
@@ -344,4 +377,19 @@ function execSql(con, req, res, method, send = true) {
             sqlCall.getUsers(req, con, res);
             break;
     }
+}
+
+function checkIfSingular(imagePath) {
+    let pathArray = imagePath.split('/');
+    let imageSetPath = pathArray[0] +"/"+ pathArray[1];
+    let image = pathArray[2];
+
+    var sql = mysql.format("SELECT h.description, i.name, i.location from Hint h, ImagesSet i where i.imageSet_id = h.id and h.image_name=?", [imagePath])
+}
+
+function sendSQLNoResult(sqlString) {
+    var sql = mysql.format(sqlString);
+    con.query(sql, function(err, result) {
+        if(err) throw err;
+    });
 }
