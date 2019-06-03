@@ -30,6 +30,7 @@ var singular_x;
 var singular_y;
 var number;
 var singular = Math.floor(Math.random() * 9 - 1 + 1);
+var hint;
 for (var i = 0; i < MAX_SIZE; i += PART_SIZE) {
     for (var j = 0; j < MAX_SIZE; j += PART_SIZE) {
         let img = new Image();
@@ -43,9 +44,10 @@ for (var i = 0; i < MAX_SIZE; i += PART_SIZE) {
         };
         if (counter === singular) {
             number = Math.floor(Math.random() * (uncommonNumber - 1) + 1);
-            img.src = '/getsingular';
+            img.src = '/getsingular?repoName=initial';
             singular_x = x;
             singular_y = y;
+
         } else {
             number = chooseNeutralCat(usedImg);
             img.src = "/img/initial/" + number + '.jpg';
@@ -54,6 +56,7 @@ for (var i = 0; i < MAX_SIZE; i += PART_SIZE) {
         counter++;
     }
 }
+
 
 function checkSingular (event) {
     if (event.clientX > singular_x && event.clientX < singular_x+PART_SIZE && event.clientY > singular_y && event.clientY < singular_y+PART_SIZE) {

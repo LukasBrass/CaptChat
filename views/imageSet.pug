@@ -6,8 +6,6 @@ mixin images(image)
         td=image.singulier ? "Oui":"Non"
         td=image.indice
         td
-            input(type="button" value="Modifier")
-        td
             form(method="POST", action="/repo/"+repoName+"/image/"+image.path+"/invert" id="form_"+image.path)
                 select(id=image.path onchange='submitOnChange("'+image.path+'")')
                     option(value=image.singulier)= image.singulier ? "Singulier" : "Neutre"

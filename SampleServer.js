@@ -26,6 +26,7 @@ con.connect(function(err) {
 });
 
 var app = express();
+var hint;
 
 app.use(cors());
 app.use(bodyParser.json());
@@ -144,9 +145,8 @@ app.post('/repo/:repoName/image/:path/invert', function (req,res) {
     var sql = mysql.format("SELECT h.id from Hint h, ImagesSet i where h.image_name=? and i.name=?", [req.params.path, req.params.repoName]);
     con.query(sql, function (err, result) {
         if (err) throw err;
-        if (result.id) {
-            console.log(result);
-            sql = mysql.format("DELETE FROM Hint where id=?", result.id);
+        if (result[0]) {
+            sql = mysql.format("DELETE FROM Hint where id=?", result[0].id);
             con.query(sql, function (err, result) {
                 if (err) throw err;
 
@@ -176,23 +176,29 @@ app.post('/repo/:repoName/image/:path/invert', function (req,res) {
 });
 
 app.get('/getsingular', function (req, res) {
-    let i = 0;
-    let singularList = [];
-    res.writeHead(200, {'Content-Type': 'image'});
-    fs.readdir("./img/initial", (err, files) => {
-        files.forEach(function(file) {
-            if(file.charAt(0) === 's') {
-                singularList.push(file);
-                i++;
-            }
-        });
-        singular_file = singularList[Math.floor(Math.random() * i-1 +1)];
-        fs.readFile('./img/initial/' + singular_file, null, (error,data) => {
-            if(error) throw error;
-            res.write(data);
-            res.end();
-        });
+    let repoName = req.query.repoName;
+    var sql = mysql.format("SELECT id from ImagesSet where name=?", repoName);
+    con.query(sql, function(err, result) {
+       if(err) throw err;
+       sql = mysql.format("SELECT * from Hint where imageSet_id=?", result[0].id);
+
+       con.query(sql, function(err, result) {
+           if(err) throw err;
+           const singular_file = result[Math.floor(Math.random() * result.length-1 +1)];
+           res.writeHead(200, {'Content-Type': 'image'});
+           fs.readFile('./img/initial/' + singular_file.image_name, null, (error,data) => {
+               if(error) throw error;
+               hint = singular_file.description;
+               res.write(data);
+               res.end();
+           });
+       });
     });
+});
+
+app.get('/getsingularhint', function(req, res) {
+    res.write(hint);
+    res.end();
 });
 
 app.get("/repo/:repoName/image/:path/new_hint", function (req, res) {
@@ -289,18 +295,20 @@ function renderImages(repo_id, repo_name, files, res, update) {
     files.forEach(function (file) {
         let source = {};
         source.path = file;
-        if (file.charAt(0) === 's') {
-            source.singulier = true;
-            let sql = mysql.format("SELECT description from Hint where image_name=? and imageSet_id=? limit 1", [file, repo_id]);
-            con.query(sql, function (err, sqlResult) {
-                if (err) throw err;
+        let sql = mysql.format("SELECT description from Hint where image_name=? and imageSet_id=? limit 1", [file, repo_id]);
+        con.query(sql, function (err, sqlResult) {
+            if (err) throw err;
+            if (sqlResult[0]) {
+                source.singulier = true;
                 source.indice = sqlResult[0].description;
-            });
-        } else
-            source.singulier = false;
-        sourceList.push(source);
+            }
+            else
+                source.singulier = false;
+            sourceList.push(source);
+        });
     });
     con.query("select sleep(0.5);", function (err, result) {
+        console.log(sourceList);
         res.render('imageSet', {repoName: repo_name, sourceList: sourceList, update:update});
     });
 }
