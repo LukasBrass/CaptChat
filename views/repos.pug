@@ -5,17 +5,25 @@ mixin repoLine(repo)
         td=repo.theme
         td=repo.location
         td
-            a(href="/repo/"+repo.name) Aller
-div
-    h1 List of images Sets
-    table
-        thead
-            tr
-                td Name
-                td Artist
-                td Theme
-                td Location
-        tbody
-            for repo in repoList
-                +repoLine(repo)
+            a(href="/repo/"+repo.name) Consulter
+        td
+            a(href="/captcha") Essayer le captcha
+html
+    head
+        title 'Liste des repositories'
+        style
+            include ../css/bootstrap.min.css
+    body
+        div
+            h1 List of images Sets
+            table
+                thead
+                    tr
+                        td Name
+                        td Artist
+                        td Theme
+                        td Location
+                tbody
+                    for repo in repoList
+                        +repoLine(repo)
 

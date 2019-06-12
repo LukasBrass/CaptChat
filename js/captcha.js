@@ -1,24 +1,17 @@
+//captchaNOK
+
 const MAX_SIZE = 900;
 const PART_SIZE = 300;
-const commonNumber = 13;
-const uncommonNumber = 14;
+const commonNumber = 10;
+const uncommonNumber = 2;
 
-var indices = {
-    "chat cosmonaute.jpg": "Saurez-vous reconnaître le chat de Thomas Pesquet ?",
-    "chat myope.jpg": "Chaussez vos lunettes et montrez-moi le chat myope ?",
-    "chat amoureux.jpg": "Saurez vous reconnaître un chat amoureux ?",
-    "chat bien coiffe.jpg": "Mon chat est une fausse blonde",
-    "chat borgne.jpg": "Ce chat là a fait une croix sur son oeil",
-    "chat chapeaute.jpg": "C'est encore le chat qui porte le chapeau",
-    "chat licorne.jpg": "Ne confondons pas une salicorne et un chat-licorne !",
-    "chat malade.jpg": "Ce chat là a oublié de se faire vacciner contre la grippe",
-    "chat moustachu.jpg": "Quel type de chat se cache derrière ses moustaches  ?",
-    "chat pirate.jpg": "Après la fiancée du pirate, voici le chat du corsaire",
-    "chat plongeur.jpg": "Chat du grand bleu",
-    "chat princesse.jpg": "C'est la reine d'Angleterre qui a perdu son chat",
-    "chat titi parisien.jpg": "Après les gilets jaunes, voici les foulards rouges",
-    "chat cyclope.jpg": "Ulysse l'a trouvé lors de son voyage"
-};
+var chosen;
+
+if(imageSet) {
+    chosen = imageSet
+} else {
+    chosen = "initial";
+}
 
 var canvas = document.getElementById('canvas');
 var context = canvas.getContext("2d");
@@ -44,13 +37,13 @@ for (var i = 0; i < MAX_SIZE; i += PART_SIZE) {
         };
         if (counter === singular) {
             number = Math.floor(Math.random() * (uncommonNumber - 1) + 1);
-            img.src = '/getsingular?repoName=initial';
+            img.src = '/getsingular?repoName=' + chosen;
             singular_x = x;
             singular_y = y;
 
         } else {
             number = chooseNeutralCat(usedImg);
-            img.src = "/img/initial/" + number + '.jpg';
+            img.src = "/img/"+chosen+"/" + number + '.jpg';
         }
         context.stroke();
         counter++;
@@ -60,7 +53,8 @@ for (var i = 0; i < MAX_SIZE; i += PART_SIZE) {
 
 function checkSingular (event) {
     if (event.clientX > singular_x && event.clientX < singular_x+PART_SIZE && event.clientY > singular_y && event.clientY < singular_y+PART_SIZE) {
-        window.location.replace('/success');
+        i = 60;
+        window.top.postMessage('ok', '*');
     }
     else {
         i = i - 5;
@@ -101,7 +95,6 @@ setTimeout(() => {
         url: "/singular_name",
         async: false,
         success: function(data){
-            console.log(data);
             context.fillText(indices[data], 300, 1000, 550);
         }
     });

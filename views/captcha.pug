@@ -1,12 +1,19 @@
+script.
+    imageSet="#{imageSet}"
 html
     head
         meta(charset='UTF-8')
         title Captcha
+        style
+            include ../css/bootstrap.min.css
     body
 
-        canvas#canvas(width='900', height='1200')
+        canvas#canvas(width='900', height='1100')
             | This is a test
 
         script
-            include ../js/captcha.js
-
+            - if(okButton === "true") {
+                include ../js/captchaOK.js
+            - } else {
+                include ../js/captcha.js
+            - }

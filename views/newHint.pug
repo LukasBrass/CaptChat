@@ -1,6 +1,12 @@
-div
-    h2 Veuillez spécifier l'indice de cette image singulière
-    form(method='GET' action='/repo/'+repoName+"/image/"+imagePath+"/new_hint")
-        input(type='text' placeholder='Nouvel indice' name='hint')
-        br
-        input(type='submit')
+html
+    head
+        title Changement de statut
+        style
+            include ../css/bootstrap.min.css
+    body
+        div
+            h2 Veuillez spécifier l'indice de cette image singulière
+            form(method='GET' action='/repo/'+repoName+"/image/"+imagePath+"/new_hint")
+                input(type='text' placeholder='Nouvel indice' name='hint')
+                br
+                input(type='submit')

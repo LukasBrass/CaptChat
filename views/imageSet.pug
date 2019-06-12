@@ -3,13 +3,11 @@ mixin images(image)
     tr.image
         td
             img(src="/img/"+repoName+'/'+image.path)
-        td=image.singulier ? "Oui":"Non"
         td=image.indice
+        td=image.singulier ? "Singulier":"Neutre"
         td
             form(method="POST", action="/repo/"+repoName+"/image/"+image.path+"/invert" id="form_"+image.path)
-                select(id=image.path onchange='submitOnChange("'+image.path+'")')
-                    option(value=image.singulier)= image.singulier ? "Singulier" : "Neutre"
-                    option(value=!image.singulier)= image.singulier ? "Neutre" : "Singulier"
+                button(id=image.path onchange='submitOnClick("'+image.path+'")') Inverser le statut
 
 html
     head
@@ -18,13 +16,14 @@ html
             include ../js/imageSet.js
         style
             include ../css/imageSet.css
+            include ../css/bootstrap.min.css
     body
         div
             h1 List of images Sets
             table
                 thead
                     td
-                    td Singulière ?
+                    td Statut
                     td Indice
                     td
                 tbody

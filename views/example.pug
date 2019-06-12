@@ -1,0 +1,50 @@
+html
+    head
+        title Example page
+        style
+            include ../css/bootstrap.min.css
+            include ../css/example.css
+        script
+            include ../js/example.js
+
+    body
+        h1
+            center Hello and welcome to my example!
+        h3 This is actually a sample page to show the WORLD how my captha is working
+        div
+            p As all example pages, we're gonna add some lorem ipsum right here : Lorem ipsum dolor sit amet, consectetur adipiscing elit. Praesent ullamcorper dictum lobortis. Pellentesque feugiat orci sed lectus tristique, et efficitur urna bibendum. Sed accumsan pulvinar tellus, at aliquam nulla. Etiam tempor sit amet sem et elementum. Sed eget risus quis sapien gravida congue. Pellentesque et gravida est. Fusce ornare, libero sit amet commodo placerat, ante eros malesuada risus, eu lacinia eros lacus eget orci. Cras rhoncus risus eu sollicitudin ullamcorper.Cras sagittis est a dui eleifend, et ultricies augue sollicitudin. Ut consequat vestibulum ipsum vitae tincidunt. Cras nisl est, auctor et consectetur fermentum, maximus nec neque. Pellentesque enim purus, semper sed lacus id, fringilla cursus mi. Phasellus varius porta nunc, nec efficitur tortor dignissim ac. Sed fermentum sem et viverra molestie. Phasellus vehicula ex at leo condimentum ultrices. Donec eu porttitor massa. Maecenas eget fringilla nulla. Mauris vulputate, ex vitae commodo iaculis, ligula diam aliquam purus, ac tempor est dolor nec nisl. Cras vitae nunc eget quam fermentum tincidunt. Praesent vitae ultricies ante. Nullam elementum sollicitudin sapien in ultrices. Duis iaculis laoreet arcu, eget auctor ipsum pellentesque quis. Praesent fermentum nulla quis condimentum mattis. Quisque sodales mi nec enim sodales molestie.
+        h3 Well said ! That's a good beginning, but we can do more !
+
+        div
+            h4 Add more lipsum ?
+            h3 Even better, we're gonna add PICTURES ! The show must go on !
+            img(src="https://lz12v4f1p8c1cumxnbiqvm10-wpengine.netdna-ssl.com/wp-content/uploads/2018/02/worst-stock-images.jpg")
+            h2 And again !
+            img(src="https://lz12v4f1p8c1cumxnbiqvm10-wpengine.netdna-ssl.com/wp-content/uploads/2017/05/egg-phobia.jpg")
+            h1(id="again") AND AGAIN !
+            img(src="https://lz12v4f1p8c1cumxnbiqvm10-wpengine.netdna-ssl.com/wp-content/uploads/2017/05/lego-stock-photo-horrible-stock-photos.jpg")
+
+        div
+            h3 OK this is great
+            h3 And now for the next part, ladies and gentleman, the CAPTCHA !
+            h5 Please make it work
+
+        //object( data="/captcha/repo/initial?okbutton=true") Spoiler: It didn't work :(
+        div(id="iframe")
+            iframe(title="Incredible, like me", width="1000", height="1100", src="/captcha/repo/initial?okbutton=true")
+
+
+        div
+            h4 WOW But it DID work ! The developer certainly is an amazing person
+            h3 Of Course I am, but the secret of this success is surprisingly easy !
+            h3 I Used this line :
+        code &lt;iframe title="#[i thisDevIsIncredible]" width="#[i WhateverYouWant]" height="#[i Same]" src="/captcha?imageset=#[i TheImageSetIWant]&okbutton=#[i trueIfIWantAnOKButton]&redirect=#[i URLIWantToRedirectToIfIChoseAnOKButton]"/&gt;
+            h3 And BAM ! Score ! HomeRun ! Uno or whatever, easy peasy give me money !
+        div
+            h4 And what do you have for me if I'm a developer too ?
+            h3 I'll give you a high five, and a way to make your web page change if the fools that come to your website passed the captcha
+            h3 Just try it ! Try the captcha and I'll give THE code line that change everything !
+
+        div(id="iframe2")
+            h3 Another captcha for the fun
+            iframe(title="Incredible, like me", width="1000", height="1100", src="/captcha/repo/initial?okbutton=false")

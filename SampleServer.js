@@ -108,6 +108,11 @@ app.post('/signup', function(req, res) {
     });
 });
 
+app.get('/example', function(req, res) {
+   res.render("example");
+   res.end();
+});
+
 
 
 /*
@@ -186,7 +191,7 @@ app.get('/getsingular', function (req, res) {
            if(err) throw err;
            const singular_file = result[Math.floor(Math.random() * result.length-1 +1)];
            res.writeHead(200, {'Content-Type': 'image'});
-           fs.readFile('./img/initial/' + singular_file.image_name, null, (error,data) => {
+           fs.readFile('./img/'+repoName+'/' + singular_file.image_name, null, (error,data) => {
                if(error) throw error;
                hint = singular_file.description;
                res.write(data);
@@ -237,13 +242,16 @@ app.post("/upload", function (req, res) {
             res.end();
             return false;
         }
+        var i = 1;
 
         Object.keys(zipEntries).forEach(function (zipEntry) {
+            console.log(zipEntry);
             if(zipEntries[zipEntry].isDirectory === false) {
                 zip.extractEntryTo(zipEntries[zipEntry], newPath );
-                fs.rename(newPath + "/" + zipEntries[zipEntry].entryName, newPath + "/" + zipEntry + ".jpg", function(err) {
+                fs.rename(newPath + "/" + zipEntries[zipEntry].entryName, newPath + "/" + i + ".jpg", function(err) {
                     if (err) throw err;
                 });
+                i++
             }
         });
 
@@ -260,8 +268,22 @@ app.post("/upload", function (req, res) {
 
 });
 
-app.get("/captcha", function (req, res) {
-    res.render('captcha');
+
+app.get("/captcha/", function (req, res) {
+    var imageSet = req.query.imageset;
+    var okButton = req.query.okbutton;
+    if(imageSet) {
+        res.writeHead("302", {
+            Location: "/captcha/repo/"+imageSet+"?okbutton="+okButton
+        });
+    } else {
+        res.render("captcha");
+    }
+    res.end();
+});
+
+app.get("/captcha/repo/:repoName", function (req, res) {
+    res.render("captcha", {imageSet: req.params.repoName, okButton: req.query.okbutton});
     res.end();
 });
 
@@ -275,12 +297,14 @@ app.use(express.static('forms'));
 app.use('/static', express.static('public'));
 
 app.get('/img/:repoName/:imgName', function (req, res) {
-    res.writeHead(200, {'Content-Type': 'image'});
-    fs.readFile('./img/' + req.params.repoName + '/' + req.params.imgName, null, (error,data) => {
-        if(error) throw error;
-        res.write(data);
-        res.end();
-    });
+    res.writeHead(200, {'Content-Type': 'image/jpeg'});
+    if(req.params.imgName !== "__MACOSX" && req.params.imgName !== req.params.repoName ) {
+        fs.readFile('./img/' + req.params.repoName + '/' + req.params.imgName, null, (error, data) => {
+            if (error) throw error;
+            res.write(data);
+            res.end();
+        });
+    }
 });
 
 app.use(function(req, res, next){
@@ -293,22 +317,22 @@ app.listen(8080);
 function renderImages(repo_id, repo_name, files, res, update) {
     let sourceList = [];
     files.forEach(function (file) {
-        let source = {};
-        source.path = file;
-        let sql = mysql.format("SELECT description from Hint where image_name=? and imageSet_id=? limit 1", [file, repo_id]);
-        con.query(sql, function (err, sqlResult) {
-            if (err) throw err;
-            if (sqlResult[0]) {
-                source.singulier = true;
-                source.indice = sqlResult[0].description;
-            }
-            else
-                source.singulier = false;
-            sourceList.push(source);
-        });
+        if(file.path !== "__MACOSX" && file.path !== repo_name ) {
+            let source = {};
+            source.path = file;
+            let sql = mysql.format("SELECT description from Hint where image_name=? and imageSet_id=? limit 1", [file, repo_id]);
+            con.query(sql, function (err, sqlResult) {
+                if (err) throw err;
+                if (sqlResult[0]) {
+                    source.singulier = true;
+                    source.indice = sqlResult[0].description;
+                } else
+                    source.singulier = false;
+                sourceList.push(source);
+            });
+        }
     });
     con.query("select sleep(0.5);", function (err, result) {
-        console.log(sourceList);
         res.render('imageSet', {repoName: repo_name, sourceList: sourceList, update:update});
     });
 }
